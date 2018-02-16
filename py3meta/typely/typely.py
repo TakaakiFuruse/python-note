@@ -52,7 +52,7 @@ class Sized(Descriptor):
     def __init__(self, *args, maxlen, **kwargs):
         self.maxlen = maxlen
         super().__init__(*args, **kwargs)
-        
+
 
     def __set__(self, instance, value):
         if len(value) > self.maxlen:
@@ -67,7 +67,7 @@ class Regex(Descriptor):
     def __init__(self, *args, pat, **kwargs):
         self.pat = re.compile(pat)
         super().__init__(*args, **kwargs)
-    
+
     def __set__(self, instance, value):
         if not self.pat.match(value):
             raise ValueError('Invalid string')
@@ -86,6 +86,11 @@ def make_signature(names):
 class StructMeta(type):
     @classmethod
     def __prepare__(cls, name, bases):
+        '''
+        __prepare__ :
+        Creates and returns Dict to use for execution of the class body.
+
+        '''
         return OrderedDict()
 
     def __new__(cls, clsname, bases, clsdict):
@@ -107,8 +112,15 @@ class Structure(metaclass=StructMeta):
 
 if __name__ == '__main__':
     class Stock(Structure):
+        '''
+        No need to do
+
+        _fields = ['name', 'shares', 'price']
+
+        anymore
+        '''
         name = SizedRegexString(maxlen=8, pat='[A-Z]+$')
-        shares = PosInteger()
+        shares = PosInteger() # PositiveInteger('shares') としなくてよい
         price = PosFloat()
 
 

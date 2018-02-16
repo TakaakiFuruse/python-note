@@ -90,7 +90,7 @@ class Sized(Descriptor):
     def __init__(self, *args, maxlen, **kwargs):
         self.maxlen = maxlen
         super().__init__(*args, **kwargs)
-        
+
     @staticmethod
     def set_code():
         return [
@@ -106,7 +106,7 @@ class Regex(Descriptor):
     def __init__(self, *args, pat, **kwargs):
         self.pat = re.compile(pat)
         super().__init__(*args, **kwargs)
-    
+
     @staticmethod
     def set_code():
         return [
@@ -141,8 +141,7 @@ class StructMeta(type):
 class Structure(metaclass=StructMeta):
     pass
 
-if __name__ == '__main__':
-    class Stock(Structure):
-        name = SizedRegexString(maxlen=8, pat='[A-Z]+$')
-        shares = PosInteger()
-        price = PosFloat()
+class Stock(Structure):
+    name = SizedRegexString(maxlen=8, pat='[A-Z]+$')
+    shares = PosInteger()
+    price = PosFloat()
