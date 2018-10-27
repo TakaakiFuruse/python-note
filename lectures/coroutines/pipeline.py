@@ -19,4 +19,4 @@ if __name__ == "__main__":
 
     # Pull results out of the processing pipeline
     for line in pylines:
-        print (line)
+        print(line)

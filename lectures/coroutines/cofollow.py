@@ -26,7 +26,7 @@ def follow(thefile, target):
 def printer():
     while True:
          line = (yield)
-         print line,
+         print(line)
 
 # Example use
 if __name__ == '__main__':

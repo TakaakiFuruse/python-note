@@ -6,7 +6,7 @@
 def coroutine(func):
     def start(*args,**kwargs):
         cr = func(*args,**kwargs)
-        cr.next()
+        cr.__next__()
         return cr
     return start
 
@@ -14,11 +14,11 @@ def coroutine(func):
 if __name__ == '__main__':
     @coroutine
     def grep(pattern):
-        print "Looking for %s" % pattern
+        print(f"Looking for {pattern}")
         while True:
             line = (yield)
             if pattern in line:
-                print line,
+                print(line)
 
     g = grep("python")
     # Notice how you don't need a next() call here
