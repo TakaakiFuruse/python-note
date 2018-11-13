@@ -9,46 +9,51 @@
 # ------------------------------------------------------------
 class Task(object):
     taskid = 0
-    def __init__(self,target):
+
+    def __init__(self, target):
         Task.taskid += 1
-        self.tid     = Task.taskid   # Task ID
-        self.target  = target        # Target coroutine
-        self.sendval = None          # Value to send
+        self.tid = Task.taskid  # Task ID
+        self.target = target  # Target coroutine
+        self.sendval = None  # Value to send
 
     # Run a task until it hits the next yield statement
     def run(self):
         return self.target.send(self.sendval)
+
 
 # ------------------------------------------------------------
 #                      === Scheduler ===
 # ------------------------------------------------------------
 from Queue import Queue
 
+
 class Scheduler(object):
     def __init__(self):
-        self.ready   = Queue()   
-        self.taskmap = {}        
+        self.ready = Queue()
+        self.taskmap = {}
 
-    def new(self,target):
+    def new(self, target):
         newtask = Task(target)
         self.taskmap[newtask.tid] = newtask
         self.schedule(newtask)
         return newtask.tid
 
-    def exit(self,task):
-        print "Task %d terminated" % task.tid
+    def exit(self, task):
+        print("Task %d terminated" % task.tid)
         del self.taskmap[task.tid]
 
-    def schedule(self,task):
+    def schedule(self, task):
         self.ready.put(task)
 
     def mainloop(self):
-         while self.taskmap:
+        while self.taskmap:
             task = self.ready.get()
             try:
+                # mytid = yield GetTid() の結果を受け取る
                 result = task.run()
-                if isinstance(result,SystemCall):
-                    result.task  = task
+                if isinstance(result, SystemCall):
+                    # system call なら。
+                    result.task = task
                     result.sched = self
                     result.handle()
                     continue
@@ -57,13 +62,16 @@ class Scheduler(object):
                 continue
             self.schedule(task)
 
+
 # ------------------------------------------------------------
 #                   === System Calls ===
 # ------------------------------------------------------------
 
+
 class SystemCall(object):
     def handle(self):
         pass
+
 
 # Return a task's ID number
 class GetTid(SystemCall):
@@ -71,21 +79,22 @@ class GetTid(SystemCall):
         self.task.sendval = self.task.tid
         self.sched.schedule(self.task)
 
+
 # ------------------------------------------------------------
 #                      === Example ===
 # ------------------------------------------------------------
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     def foo():
-        mytid = yield GetTid()
+        mytid = yield GetTid() # -> Getid()はtask.run()の結果になる
         for i in xrange(5):
-            print "I'm foo", mytid
+            print("I'm foo", mytid)
             yield
 
     def bar():
-        mytid = yield GetTid()
+        mytid = yield GetTid() # -> Getid()はtask.run()の結果になる
         for i in xrange(10):
-            print "I'm bar", mytid
+            print("I'm bar", mytid)
             yield
 
     sched = Scheduler()

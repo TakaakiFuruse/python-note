@@ -1,4 +1,4 @@
-# cosax.py
+ # cosax.py
 #
 # An example showing how to push SAX events into a coroutine target
 

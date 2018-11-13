@@ -7,9 +7,11 @@ from threading import Thread
 from Queue import Queue
 from coroutine import *
 
+
 @coroutine
 def threaded(target):
     messages = Queue()
+
     def run_target():
         while True:
             item = messages.get()
@@ -18,6 +20,7 @@ def threaded(target):
                 return
             else:
                 target.send(item)
+
     Thread(target=run_target).start()
     try:
         while True:
@@ -26,18 +29,27 @@ def threaded(target):
     except GeneratorExit:
         messages.put(GeneratorExit)
 
+
 # Example use
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import xml.sax
     from cosax import EventHandler
     from buses import *
 
-    xml.sax.parse("allroutes.xml", EventHandler(
-                    buses_to_dicts(
-                    threaded(
-                         filter_on_field("route","22",
-                         filter_on_field("direction","North Bound",
-                         bus_locations()))
-                    ))))
-                 
+    xml.sax.parse(
+        "allroutes.xml",
+        EventHandler(
+            buses_to_dicts(
+                threaded(
+                    filter_on_field(
+                        "route",
+                        "22",
+                        filter_on_field(
+                            "direction", "North Bound", bus_locations()
+                        ),
+                    )
+                )
+            )
+        ),
+    )
