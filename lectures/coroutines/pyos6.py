@@ -24,7 +24,7 @@ class Task(object):
 # ------------------------------------------------------------
 #                      === Scheduler ===
 # ------------------------------------------------------------
-from Queue import Queue
+from queue import Queue
 
 
 class Scheduler(object):
@@ -137,7 +137,7 @@ class WaitTask(SystemCall):
 if __name__ == "__main__":
 
     def foo():
-        for i in xrange(5):
+        for i in range(5):
             print("I'm foo")
             yield
 
@@ -147,6 +147,7 @@ if __name__ == "__main__":
         yield WaitTask(child)
         print("Child done")
 
+    from pudb import set_trace as bp; bp()
     sched = Scheduler()
     sched.new(main())
     sched.mainloop()
