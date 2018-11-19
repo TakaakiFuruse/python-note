@@ -147,7 +147,6 @@ if __name__ == "__main__":
         yield WaitTask(child)
         print("Child done")
 
-    from pudb import set_trace as bp; bp()
     sched = Scheduler()
     sched.new(main())
     sched.mainloop()
