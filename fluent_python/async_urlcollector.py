@@ -1,27 +1,45 @@
 import asyncio
-import logging
 import re
 import sys
+import urllib.error
 import urllib.parse
-import urllib.rror
 from typing import IO
 
+import aiofiles
 import aiohttp
 from aiohttp import ClientSession
 
-import aioiles
+"""
+===aiohttp example===
 
-logging.basicConfig(
-    format="%(asctime)s %(levelname)s:%(name)s: %(message)s",
-    level=logging.DEBUG,
-    datefmt="%H:%M:%S",
-    stream=sys.stderr,
-)
+import aiohttp
+import asyncio
 
-logger = logging.getLogger("areq")
-logging.getLogger("chardet.charsetprober").disables = True
+async def fetch(client):
+    async with client.get('http://python.org') as resp:
+        assert resp.status == 200
+        return await resp.text()
+
+async def main():
+    async with aiohttp.ClientSession() as client:
+        html = await fetch(client)
+        print(html)
+
+loop = asyncio.get_event_loop()
+loop.run_until_complete(main())
+"""
+
 
 HREF_RE = re.compile(r'href="(.*?)"')
+
+URLS = [
+    "https://www.google.com/search?num=100&q=cat",
+    "https://search.yahoo.com/search?p=cat",
+    "https://duckduckgo.com/?q=cat&t=h_&ia=web",
+    "https://duckduckgo.com/?q=dog&t=h_&ia=web",
+    "https://www.google.com/search?num=100&q=dog",
+    "https://search.yahoo.com/search?p=dog",
+]
 
 
 async def fetch_html(url: str, session: ClientSession, **kwargs) -> str:
@@ -31,58 +49,55 @@ async def fetch_html(url: str, session: ClientSession, **kwargs) -> str:
     """
 
     resp = await session.request(method="GET", url=url, **kwargs)
-    resp.raise_for_status()
-    logger.info("Got reponse [%s] for URL : %s", resp.status, url)
+    print(f"Got response [{resp.status}] for URL: {url}")
     html = await resp.text()
-
     return html
 
 
-async def parse(url: str, sesion: ClinentSession, **kwargs) -> set:
+async def parse(url: str, session: ClientSession, **kwargs) -> set:
     """Find HREFs in the HTML of `url`."""
     found = set()
+    html = await fetch_html(url=url, session=session, **kwargs)
+    for link in HREF_RE.findall(html):
+        try:
+            abslink = urllib.parse.urljoin(url, link)
+        except (urllib.error.URLError, ValueError):
+            print(f"Error parsing URL: {link}")
+            pass
+        else:
+            found.add(abslink)
+    print(f"Found {len(found)} links for {url}")
+    return found
 
-    try:
-        html = await fetch_html(url=url, session=session, **kwargs)
-    except (
-        aiohttp.ClientError,
-        aiohttp.http_exceptions.HttpProcessingError,
-    ) as e:
-        logger.error(
-            "aiohttp exception for %s [%s]: %s",
-            url,
-            getattr(e, "status", None),
-            getattr(e, "message", None),
-        )
-        return found
-    except Exception as e:
-        logger.exception(
-            "Non-aiohttp exception occured:  %s", getattr(e, "__dict__", {})
-        )
-        return found
-    else:
-        for link in HREF_RE.findall(html):
-            try:
-            	abslink = urllib.parse.urljoin(url, link)
-            except (urllib.error.URLError, ValueError):
-            	logger.exception("ERROR PARSING URL: %s", link)
-                pass
-            else:
-                found.add(abslink)
-        logger.info("Found %d links for %s", len(found), url)
-        return found
 
 async def write_one(file: IO, url: str, **kwargs) -> None:
-      	res = await parse(url=url, **kwargs)
-        if not res:
-            return None
-        async with aiofiles.open(file, "a") as f:
-            for p in res:
-                await f.write(f"{url}\t{p}\n")
-            logger.info("wrote results for source url: %s", url)
+    """Write the found HREFs from `url` to `file`."""
+    res = await parse(url=url, **kwargs)
 
-async def bulk_crawl_and_write(file: IO, urls: set, **kwars) -> None:
-    async with ClientSession as session:
+    async with aiofiles.open(file, "a") as f:
+        for p in res:
+            await f.write(f"{url}\t{p}\n")
+        print(f"Wrote results for source URL: {url}")
+
+
+async def bulk_crawl_and_write(file: IO, urls: set, **kwargs) -> None:
+    """Crawl & write concurrently to `file` for multiple `urls`."""
+    async with ClientSession() as session:
         tasks = []
-        for url  in urls:
-            tasks.append
+        for url in urls:
+            tasks.append(
+                write_one(file=file, url=url, session=session, **kwargs)
+            )
+        await asyncio.gather(*tasks)
+
+
+if __name__ == "__main__":
+    import pathlib
+    import sys
+
+    here = pathlib.Path(__file__).parent
+    outpath = here.joinpath("foundurls.txt")
+    with open(outpath, "w") as outfile:
+        outfile.write("source_url\tparsed_url\n")
+
+    asyncio.run(bulk_crawl_and_write(file=outpath, urls=URLS))
