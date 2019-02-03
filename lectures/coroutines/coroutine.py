@@ -3,15 +3,19 @@
 # A decorator function that takes care of starting a coroutine
 # automatically on call.
 
+
 def coroutine(func):
-    def start(*args,**kwargs):
-        cr = func(*args,**kwargs)
+    def start(*args, **kwargs):
+        cr = func(*args, **kwargs)
         cr.__next__()
         return cr
+
     return start
 
+
 # Example use
-if __name__ == '__main__':
+if __name__ == "__main__":
+
     @coroutine
     def grep(pattern):
         print(f"Looking for {pattern}")

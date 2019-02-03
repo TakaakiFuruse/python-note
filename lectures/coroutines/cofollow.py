@@ -11,24 +11,29 @@ from coroutine import coroutine
 # data into one (target)
 
 import time
+
+
 def follow(thefile, target):
-    thefile.seek(0,2)      # Go to the end of the file
+    thefile.seek(0, 2)  # Go to the end of the file
     while True:
-         line = thefile.readline()
-         if not line:
-             time.sleep(0.1)    # Sleep briefly
-             continue
-         target.send(line)
+        line = thefile.readline()
+        if not line:
+            time.sleep(0.1)  # Sleep briefly
+            continue
+        target.send(line)
+
 
 # A sink.  A coroutine that receives data
+
 
 @coroutine
 def printer():
     while True:
-         line = (yield)
-         print(line)
+        line = (yield)
+        print(line)
+
 
 # Example use
-if __name__ == '__main__':
+if __name__ == "__main__":
     f = open("access-log")
-    follow(f,printer())
+    follow(f, printer())

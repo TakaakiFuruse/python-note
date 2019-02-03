@@ -7,8 +7,9 @@
 from socket import *
 from pyos7 import *
 
-def handle_client(client,addr):
-    print "Connection from", addr
+
+def handle_client(client, addr):
+    print("Connection from", addr)
     while True:
         yield ReadWait(client)
         data = client.recv(65536)
@@ -17,23 +18,26 @@ def handle_client(client,addr):
         yield WriteWait(client)
         client.send(data)
     client.close()
-    print "Client closed"
+    print("Client closed")
+
 
 def server(port):
-    print "Server starting"
-    sock = socket(AF_INET,SOCK_STREAM)
-    sock.setsockopt(SOL_SOCKET,SO_REUSEADDR,1)
-    sock.bind(("",port))
+    print("Server starting")
+    sock = socket(AF_INET, SOCK_STREAM)
+    sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+    sock.bind(("", port))
     sock.listen(5)
     while True:
         yield ReadWait(sock)
-        client,addr = sock.accept()
-        yield NewTask(handle_client(client,addr))    
+        client, addr = sock.accept()
+        yield NewTask(handle_client(client, addr))
+
 
 def alive():
-        while True:
-            print "I'm alive!"
-            yield
+    while True:
+        print("I'm alive!")
+        yield
+
 
 sched = Scheduler()
 sched.new(alive())
