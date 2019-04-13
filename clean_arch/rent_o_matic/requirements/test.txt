@@ -1,4 +1,5 @@
 -r prod.txt
 tox
 coverage
-
+pytest-cov
+pytest-flask
