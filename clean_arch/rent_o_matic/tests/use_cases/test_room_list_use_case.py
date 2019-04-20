@@ -4,6 +4,7 @@ from unittest import mock
 
 from rent_o_matic.domain import room as r
 from rent_o_matic.use_cases import room_list_use_case as uc
+from rent_o_matic.request_objects import room_list_request_object as req
 
 
 @pytest.fixture
@@ -39,12 +40,15 @@ def domain_rooms():
 
     return [room_1, room_2, room_3]
 
+
 def test_room_list_without_params(domain_rooms):
     repo = mock.Mock()
     repo.list.return_value = domain_rooms
 
     room_list_use_case = uc.RoomListUseCase(repo)
-    result = room_list_use_case.execute()
+    request = req.RoomListRequestObject()
+    response = room_list_use_case.execute(request)
 
+    assert bool(response) is True
     repo.list.assert_called_with()
-    assert result == domain_rooms
+    assert response.value == domain_rooms
